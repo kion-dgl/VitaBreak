@@ -91,33 +91,30 @@ jobs:
                    cmake -DPORTMASTER=ON .. && \
                    make -j\$(nproc)"
 
-    - name: Build PortMaster ARM32
-      run: |
-        docker run --rm \
-          --platform=linux/arm/v7 \
-          -v "$(pwd):/src" \
-          -w /src \
-          monkeyx/retro_builder:arm32 \
-          bash -c "mkdir -p build-portmaster-arm32 && \
-                   cd build-portmaster-arm32 && \
-                   cmake -DPORTMASTER=ON .. && \
-                   make -j\$(nproc)"
+    # ARM32 build skipped in CI due to old CMake in Docker image
+    # Can be built locally with ./build-portmaster.sh
+    # - name: Build PortMaster ARM32
+    #   run: |
+    #     docker run --rm \
+    #       --platform=linux/arm/v7 \
+    #       -v "$(pwd):/src" \
+    #       -w /src \
+    #       monkeyx/retro_builder:arm32 \
+    #       bash -c "mkdir -p build-portmaster-arm32 && \
+    #                cd build-portmaster-arm32 && \
+    #                cmake -DPORTMASTER=ON .. && \
+    #                make -j\$(nproc)"
 
-    - name: Verify ARM Binaries
+    - name: Verify ARM64 Binary
       run: |
         file build-portmaster-arm64/BreakOut
-        file build-portmaster-arm32/BreakOut
+        ls -lh build-portmaster-arm64/BreakOut
 
-    - name: Package PortMaster
-      run: |
-        chmod +x package-portmaster.sh
-        ./package-portmaster.sh
-
-    - name: Upload PortMaster Package
+    - name: Upload PortMaster ARM64 Binary
       uses: actions/upload-artifact@v4
       with:
-        name: BreakOut-PortMaster
-        path: BreakOut.PortMaster.zip
+        name: BreakOut-PortMaster-ARM64
+        path: build-portmaster-arm64/BreakOut
 
   # VitaSDK build would require custom runner or Docker image
   # Commented out for now - can be added if VitaSDK Docker image is available
