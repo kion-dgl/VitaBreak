@@ -1,5 +1,7 @@
 # Build outputs
 build/
+build-portmaster-*/
+portmaster-package/
 *.o
 *.a
 *.so
@@ -7,6 +9,7 @@ build/
 *.self
 *.velf
 *.elf
+*.zip
 
 # Emscripten outputs
 *.wasm

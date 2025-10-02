@@ -1,12 +1,12 @@
 # BreakOut - Cross-Platform Breakout Game
 
-A classic Breakout game built in C with SDL2, targeting PS Vita, Linux, and WebAssembly.
+A classic Breakout game built in C with SDL2, targeting PS Vita, Linux, WebAssembly, and PortMaster (Anbernic/handheld devices).
 
 ## Features
 
 - **4 Development Stages**: Basic blockout → Simple graphics → Game flow & scoring → Polish & effects
-- **Cross-Platform**: PS Vita (primary), Linux (development), WebAssembly (web demo)
-- **Fixed Resolution**: 960×544 (PS Vita native) across all platforms
+- **Cross-Platform**: PS Vita (primary), Linux (development), WebAssembly (web demo), PortMaster (Anbernic/handhelds)
+- **Fixed Resolution**: 960×544 (PS Vita native) with letterboxing on other resolutions
 - **Performance**: 60 FPS target on Vita, smooth gameplay on all platforms
 
 ## Build Instructions
@@ -26,6 +26,10 @@ sudo apt-get install libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev cmake build
 **WebAssembly**:
 - Install [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)
 - Run `source /path/to/emsdk/emsdk_env.sh`
+
+**PortMaster (Anbernic/Handhelds)**:
+- Install [Docker](https://docs.docker.com/get-docker/)
+- Ensure Docker daemon is running: `sudo systemctl start docker`
 
 ### Building
 
@@ -61,6 +65,18 @@ python3 -m http.server 8000
 # Open browser: http://localhost:8000/BreakOut.html
 ```
 
+**PortMaster (Anbernic/Handhelds)**:
+```bash
+# Build binaries for ARM64 and ARM32 using Docker
+./build-portmaster.sh
+
+# Package for distribution
+./package-portmaster.sh
+
+# Output: BreakOut.PortMaster.zip
+# Install: Extract to /roms/ports/ on your device
+```
+
 ### Running Tests (Linux only)
 
 ```bash
@@ -84,6 +100,11 @@ make test_runner
 - **Touch/Drag**: Move paddle (mobile)
 - **Arrow Keys**: Move paddle (desktop)
 - **Tap/Space**: Start game / Continue
+
+### PortMaster (Anbernic/Handhelds)
+- **D-pad / Left Analog**: Move paddle left/right
+- **A Button**: Start game / Launch ball
+- **SELECT**: Quit
 
 ## Project Structure
 

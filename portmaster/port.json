@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "name": "BreakOut",
+  "items": [
+    "BreakOut.sh"
+  ],
+  "items_opt": [],
+  "attr": {
+    "title": "BreakOut",
+    "desc": "Classic brick-breaking game with paddle physics. Originally built for PS Vita, now on your handheld!",
+    "inst": "Move paddle with D-pad/analog, launch ball with A button. Clear all bricks to advance!",
+    "genres": [
+      "arcade",
+      "action"
+    ],
+    "porter": "VitaBreak Project",
+    "rtr": false,
+    "runtime": "frt"
+  }
+}

@@ -1,0 +1,122 @@
+name: CI - Build All Platforms
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install SDL2
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev cmake build-essential
+
+    - name: Build Linux
+      run: |
+        mkdir build && cd build
+        cmake ..
+        make -j$(nproc)
+
+    - name: Test Linux Binary
+      run: |
+        file build/BreakOut
+        ldd build/BreakOut
+
+    - name: Upload Linux Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: BreakOut-Linux
+        path: build/BreakOut
+
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Emscripten
+      uses: mymindstorm/setup-emsdk@v14
+      with:
+        version: 'latest'
+
+    - name: Build WebAssembly
+      run: |
+        mkdir build-wasm && cd build-wasm
+        emcmake cmake ..
+        emmake make -j$(nproc)
+
+    - name: Verify WASM Output
+      run: |
+        ls -lh build-wasm/BreakOut.*
+        file build-wasm/BreakOut.wasm
+
+    - name: Upload WASM Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: BreakOut-WASM
+        path: |
+          build-wasm/BreakOut.html
+          build-wasm/BreakOut.js
+          build-wasm/BreakOut.wasm
+
+  build-portmaster:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build PortMaster ARM64
+      run: |
+        docker run --rm \
+          --platform=linux/arm64 \
+          -v "$(pwd):/src" \
+          -w /src \
+          monkeyx/retro_builder:arm64 \
+          bash -c "mkdir -p build-portmaster-arm64 && \
+                   cd build-portmaster-arm64 && \
+                   cmake -DPORTMASTER=ON .. && \
+                   make -j\$(nproc)"
+
+    - name: Build PortMaster ARM32
+      run: |
+        docker run --rm \
+          --platform=linux/armhf \
+          -v "$(pwd):/src" \
+          -w /src \
+          monkeyx/retro_builder:arm32 \
+          bash -c "mkdir -p build-portmaster-arm32 && \
+                   cd build-portmaster-arm32 && \
+                   cmake -DPORTMASTER=ON .. && \
+                   make -j\$(nproc)"
+
+    - name: Verify ARM Binaries
+      run: |
+        file build-portmaster-arm64/BreakOut
+        file build-portmaster-arm32/BreakOut
+
+    - name: Package PortMaster
+      run: |
+        chmod +x package-portmaster.sh
+        ./package-portmaster.sh
+
+    - name: Upload PortMaster Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: BreakOut-PortMaster
+        path: BreakOut.PortMaster.zip
+
+  # VitaSDK build would require custom runner or Docker image
+  # Commented out for now - can be added if VitaSDK Docker image is available
+  # build-vita:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Build PS Vita VPK
+  #     run: echo "VitaSDK build requires custom setup"
