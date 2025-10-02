@@ -1,5 +1,7 @@
 # Build outputs
 build/
+build-vita/
+build-wasm/
 build-windows/
 build-portmaster-*/
 portmaster-package/
