@@ -108,6 +108,23 @@ jobs:
         cd portmaster-package
         zip -r ../BreakOut-PortMaster-ARM64.zip breakout/
 
+    # PS Vita Build
+    - name: Build PS Vita VPK
+      run: |
+        docker run --rm \
+          -v "$(pwd):/build/git" \
+          -w /build/git \
+          gnuton/vitasdk-docker \
+          bash -c "mkdir -p build-vita && \
+                   cd build-vita && \
+                   cmake -DVITA=ON .. && \
+                   make -j\$(nproc)"
+
+    - name: Verify VPK
+      run: |
+        ls -lh build-vita/BreakOut.vpk
+        file build-vita/BreakOut.vpk
+
     # Create Release
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -118,6 +135,7 @@ jobs:
           BreakOut-Windows-x86_64.zip
           BreakOut-WebAssembly.zip
           BreakOut-PortMaster-ARM64.zip
+          build-vita/BreakOut.vpk
         body: |
           # BreakOut ${{ github.ref_name }}
 
@@ -125,11 +143,11 @@ jobs:
 
           ## Downloads
 
+          - **PS Vita**: `BreakOut.vpk` (install with VitaShell)
           - **Linux (x86_64)**: `BreakOut-Linux-x86_64.tar.gz`
           - **Windows (x86_64)**: `BreakOut-Windows-x86_64.zip` (includes SDL2.dll)
           - **WebAssembly**: `BreakOut-WebAssembly.zip` (extract and serve with HTTP server)
           - **PortMaster (ARM64)**: `BreakOut-PortMaster-ARM64.zip` (for Anbernic/handheld devices)
-          - **PS Vita VPK**: Build from source (requires VitaSDK)
 
           ## Play Online
 
