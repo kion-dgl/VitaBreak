@@ -128,8 +128,7 @@ elseif(WIN32)
     # Windows (MinGW)
     target_link_libraries(BreakOut
         mingw32
-        SDL2main
-        SDL2
+        ${SDL2_LIBRARIES}
         m
     )
 

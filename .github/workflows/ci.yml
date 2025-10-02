@@ -57,7 +57,7 @@ jobs:
         mkdir build-windows && cd build-windows
         cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake \
               -DSDL2_INCLUDE_DIR=$SDL2_DIR/include/SDL2 \
-              -DSDL2_LIBRARY=$SDL2_DIR/lib/libSDL2.dll.a \
+              -DSDL2_LIBRARY="$SDL2_DIR/lib/libSDL2main.a;$SDL2_DIR/lib/libSDL2.dll.a" \
               ..
         make -j$(nproc)
 
