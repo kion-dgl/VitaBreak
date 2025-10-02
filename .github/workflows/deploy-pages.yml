@@ -2,7 +2,7 @@ name: CD - Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -29,7 +29,8 @@ jobs:
 
     - name: Build WebAssembly
       run: |
-        mkdir build-wasm && cd build-wasm
+        mkdir -p build-wasm
+        cd build-wasm
         emcmake cmake ..
         emmake make -j$(nproc)
 
