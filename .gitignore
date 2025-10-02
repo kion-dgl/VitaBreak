@@ -1,5 +1,6 @@
 # Build outputs
 build/
+build-windows/
 build-portmaster-*/
 portmaster-package/
 *.o
@@ -10,6 +11,8 @@ portmaster-package/
 *.velf
 *.elf
 *.zip
+*.exe
+*.dll
 
 # Emscripten outputs
 *.wasm

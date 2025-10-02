@@ -35,6 +35,44 @@ jobs:
         name: BreakOut-Linux
         path: build/BreakOut
 
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install MinGW and SDL2
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 cmake wget unzip
+
+    - name: Download SDL2 for MinGW
+      run: |
+        wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-mingw.tar.gz
+        tar -xzf SDL2-devel-2.30.10-mingw.tar.gz
+        export SDL2_DIR=$(pwd)/SDL2-2.30.10/x86_64-w64-mingw32
+        echo "SDL2_DIR=$SDL2_DIR" >> $GITHUB_ENV
+
+    - name: Build Windows
+      run: |
+        mkdir build-windows && cd build-windows
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake \
+              -DSDL2_INCLUDE_DIR=$SDL2_DIR/include/SDL2 \
+              -DSDL2_LIBRARY="$SDL2_DIR/lib/libSDL2main.a;$SDL2_DIR/lib/libSDL2.dll.a" \
+              ..
+        make -j$(nproc)
+
+    - name: Package Windows Build
+      run: |
+        mkdir -p BreakOut-Windows
+        cp build-windows/BreakOut.exe BreakOut-Windows/
+        cp $SDL2_DIR/bin/SDL2.dll BreakOut-Windows/
+
+    - name: Upload Windows Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: BreakOut-Windows
+        path: BreakOut-Windows/
+
   build-wasm:
     runs-on: ubuntu-latest
     steps:

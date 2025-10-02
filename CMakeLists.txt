@@ -16,14 +16,23 @@ elseif(PORTMASTER)
     message(STATUS "Building for PortMaster (ARM Linux)")
     set(PORT_NAME "breakout")
     set(PORT_VERSION "1.0.0")
+elseif(WIN32)
+    message(STATUS "Building for Windows")
 else()
     message(STATUS "Building for Linux/Desktop")
 endif()
 
 # Find SDL2
 if(NOT VITA AND NOT EMSCRIPTEN)
-    find_package(SDL2 REQUIRED)
-    include_directories(${SDL2_INCLUDE_DIRS})
+    # Allow manual SDL2 paths for Windows cross-compilation
+    if(WIN32 AND DEFINED SDL2_INCLUDE_DIR AND DEFINED SDL2_LIBRARY)
+        message(STATUS "Using manually specified SDL2 paths")
+        include_directories(${SDL2_INCLUDE_DIR})
+        set(SDL2_LIBRARIES ${SDL2_LIBRARY})
+    else()
+        find_package(SDL2 REQUIRED)
+        include_directories(${SDL2_INCLUDE_DIRS})
+    endif()
 endif()
 
 # Source files (add more as we implement them)
@@ -113,6 +122,19 @@ elseif(EMSCRIPTEN)
     target_link_options(BreakOut PRIVATE
         -sUSE_SDL=2
         -sALLOW_MEMORY_GROWTH=1
+    )
+
+elseif(WIN32)
+    # Windows (MinGW)
+    target_link_libraries(BreakOut
+        mingw32
+        ${SDL2_LIBRARIES}
+        m
+    )
+
+    # Set Windows subsystem to avoid console window
+    set_target_properties(BreakOut PROPERTIES
+        WIN32_EXECUTABLE TRUE
     )
 
 else()

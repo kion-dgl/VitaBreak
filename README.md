@@ -1,11 +1,11 @@
 # BreakOut - Cross-Platform Breakout Game
 
-A classic Breakout game built in C with SDL2, targeting PS Vita, Linux, WebAssembly, and PortMaster (Anbernic/handheld devices).
+A classic Breakout game built in C with SDL2, targeting PS Vita, Linux, Windows, WebAssembly, and PortMaster (Anbernic/handheld devices).
 
 ## Features
 
 - **4 Development Stages**: Basic blockout → Simple graphics → Game flow & scoring → Polish & effects
-- **Cross-Platform**: PS Vita (primary), Linux (development), WebAssembly (web demo), PortMaster (Anbernic/handhelds)
+- **Cross-Platform**: PS Vita (primary), Linux (development), Windows (PC), WebAssembly (web demo), PortMaster (Anbernic/handhelds)
 - **Fixed Resolution**: 960×544 (PS Vita native) with letterboxing on other resolutions
 - **Performance**: 60 FPS target on Vita, smooth gameplay on all platforms
 
@@ -27,6 +27,10 @@ sudo apt-get install libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev cmake build
 - Install [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)
 - Run `source /path/to/emsdk/emsdk_env.sh`
 
+**Windows**:
+- Install [MinGW-w64](https://www.mingw-w64.org/)
+- Download [SDL2 for MinGW](https://github.com/libsdl-org/SDL/releases)
+
 **PortMaster (Anbernic/Handhelds)**:
 - Install [Docker](https://docs.docker.com/get-docker/)
 - Ensure Docker daemon is running: `sudo systemctl start docker`
@@ -39,6 +43,15 @@ mkdir build && cd build
 cmake ..
 make
 ./BreakOut
+```
+
+**Windows (Cross-compile from Linux)**:
+```bash
+mkdir build-windows && cd build-windows
+cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake ..
+make
+
+# Output: BreakOut.exe (requires SDL2.dll)
 ```
 
 **PS Vita**:
