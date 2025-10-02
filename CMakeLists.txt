@@ -16,6 +16,8 @@ elseif(PORTMASTER)
     message(STATUS "Building for PortMaster (ARM Linux)")
     set(PORT_NAME "breakout")
     set(PORT_VERSION "1.0.0")
+elseif(WIN32)
+    message(STATUS "Building for Windows")
 else()
     message(STATUS "Building for Linux/Desktop")
 endif()
@@ -113,6 +115,20 @@ elseif(EMSCRIPTEN)
     target_link_options(BreakOut PRIVATE
         -sUSE_SDL=2
         -sALLOW_MEMORY_GROWTH=1
+    )
+
+elseif(WIN32)
+    # Windows (MinGW)
+    target_link_libraries(BreakOut
+        mingw32
+        SDL2main
+        SDL2
+        m
+    )
+
+    # Set Windows subsystem to avoid console window
+    set_target_properties(BreakOut PROPERTIES
+        WIN32_EXECUTABLE TRUE
     )
 
 else()
