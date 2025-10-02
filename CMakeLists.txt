@@ -24,8 +24,15 @@ endif()
 
 # Find SDL2
 if(NOT VITA AND NOT EMSCRIPTEN)
-    find_package(SDL2 REQUIRED)
-    include_directories(${SDL2_INCLUDE_DIRS})
+    # Allow manual SDL2 paths for Windows cross-compilation
+    if(WIN32 AND DEFINED SDL2_INCLUDE_DIR AND DEFINED SDL2_LIBRARY)
+        message(STATUS "Using manually specified SDL2 paths")
+        include_directories(${SDL2_INCLUDE_DIR})
+        set(SDL2_LIBRARIES ${SDL2_LIBRARY})
+    else()
+        find_package(SDL2 REQUIRED)
+        include_directories(${SDL2_INCLUDE_DIRS})
+    endif()
 endif()
 
 # Source files (add more as we implement them)

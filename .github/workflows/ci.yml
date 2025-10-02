@@ -49,21 +49,23 @@ jobs:
       run: |
         wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-mingw.tar.gz
         tar -xzf SDL2-devel-2.30.10-mingw.tar.gz
-        sudo cp -r SDL2-2.30.10/x86_64-w64-mingw32/include/SDL2 /usr/x86_64-w64-mingw32/include/
-        sudo cp -r SDL2-2.30.10/x86_64-w64-mingw32/lib/* /usr/x86_64-w64-mingw32/lib/
-        sudo cp -r SDL2-2.30.10/x86_64-w64-mingw32/bin/*.dll /usr/x86_64-w64-mingw32/bin/
+        export SDL2_DIR=$(pwd)/SDL2-2.30.10/x86_64-w64-mingw32
+        echo "SDL2_DIR=$SDL2_DIR" >> $GITHUB_ENV
 
     - name: Build Windows
       run: |
         mkdir build-windows && cd build-windows
-        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake ..
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake \
+              -DSDL2_INCLUDE_DIR=$SDL2_DIR/include/SDL2 \
+              -DSDL2_LIBRARY=$SDL2_DIR/lib/libSDL2.dll.a \
+              ..
         make -j$(nproc)
 
     - name: Package Windows Build
       run: |
         mkdir -p BreakOut-Windows
         cp build-windows/BreakOut.exe BreakOut-Windows/
-        cp /usr/x86_64-w64-mingw32/bin/SDL2.dll BreakOut-Windows/
+        cp $SDL2_DIR/bin/SDL2.dll BreakOut-Windows/
 
     - name: Upload Windows Build
       uses: actions/upload-artifact@v4
