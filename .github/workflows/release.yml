@@ -1,0 +1,152 @@
+name: Release - Build All Platforms
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build-all:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    # Linux Build
+    - name: Install SDL2
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev cmake build-essential
+
+    - name: Build Linux
+      run: |
+        mkdir build && cd build
+        cmake ..
+        make -j$(nproc)
+        tar -czf ../BreakOut-Linux-x86_64.tar.gz BreakOut
+
+    # Windows Build
+    - name: Install MinGW
+      run: |
+        sudo apt-get install -y mingw-w64 wget
+
+    - name: Download SDL2 for MinGW
+      run: |
+        wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-devel-2.30.10-mingw.tar.gz
+        tar -xzf SDL2-devel-2.30.10-mingw.tar.gz
+        export SDL2_DIR=$(pwd)/SDL2-2.30.10/x86_64-w64-mingw32
+        echo "SDL2_DIR=$SDL2_DIR" >> $GITHUB_ENV
+
+    - name: Build Windows
+      run: |
+        mkdir build-windows && cd build-windows
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake \
+              -DSDL2_INCLUDE_DIR=$SDL2_DIR/include/SDL2 \
+              -DSDL2_LIBRARY="$SDL2_DIR/lib/libSDL2main.a;$SDL2_DIR/lib/libSDL2.dll.a" \
+              ..
+        make -j$(nproc)
+
+    - name: Package Windows
+      run: |
+        mkdir BreakOut-Windows
+        cp build-windows/BreakOut.exe BreakOut-Windows/
+        cp $SDL2_DIR/bin/SDL2.dll BreakOut-Windows/
+        zip -r BreakOut-Windows-x86_64.zip BreakOut-Windows/
+
+    # WebAssembly Build
+    - name: Setup Emscripten
+      uses: mymindstorm/setup-emsdk@v14
+      with:
+        version: 'latest'
+
+    - name: Build WebAssembly
+      run: |
+        mkdir -p build-wasm
+        cd build-wasm
+        emcmake cmake ..
+        emmake make -j$(nproc)
+
+    - name: Package WebAssembly
+      run: |
+        mkdir BreakOut-WebAssembly
+        cp build-wasm/BreakOut.html BreakOut-WebAssembly/index.html
+        cp build-wasm/BreakOut.js BreakOut-WebAssembly/
+        cp build-wasm/BreakOut.wasm BreakOut-WebAssembly/
+        zip -r BreakOut-WebAssembly.zip BreakOut-WebAssembly/
+
+    # PortMaster ARM64 Build
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build PortMaster ARM64
+      run: |
+        docker run --rm \
+          --platform=linux/arm64 \
+          -v "$(pwd):/src" \
+          -w /src \
+          monkeyx/retro_builder:arm64 \
+          bash -c "mkdir -p build-portmaster-arm64 && \
+                   cd build-portmaster-arm64 && \
+                   cmake -DPORTMASTER=ON .. && \
+                   make -j\$(nproc)"
+
+    - name: Package PortMaster
+      run: |
+        mkdir -p portmaster-package/breakout
+        cp build-portmaster-arm64/BreakOut portmaster-package/breakout/BreakOut.aarch64
+        cp portmaster/BreakOut.sh portmaster-package/breakout/
+        cp portmaster/port.json portmaster-package/breakout/
+        chmod +x portmaster-package/breakout/BreakOut.sh
+        cd portmaster-package
+        zip -r ../BreakOut-PortMaster-ARM64.zip breakout/
+
+    # Create Release
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          BreakOut-Linux-x86_64.tar.gz
+          BreakOut-Windows-x86_64.zip
+          BreakOut-WebAssembly.zip
+          BreakOut-PortMaster-ARM64.zip
+        body: |
+          # BreakOut ${{ github.ref_name }}
+
+          Cross-platform Breakout game for PS Vita, Linux, Windows, WebAssembly, and PortMaster.
+
+          ## Downloads
+
+          - **Linux (x86_64)**: `BreakOut-Linux-x86_64.tar.gz`
+          - **Windows (x86_64)**: `BreakOut-Windows-x86_64.zip` (includes SDL2.dll)
+          - **WebAssembly**: `BreakOut-WebAssembly.zip` (extract and serve with HTTP server)
+          - **PortMaster (ARM64)**: `BreakOut-PortMaster-ARM64.zip` (for Anbernic/handheld devices)
+          - **PS Vita VPK**: Build from source (requires VitaSDK)
+
+          ## Play Online
+
+          🎮 [Play in browser](https://kion-dgl.github.io/VitaBreak/)
+
+          ## Controls
+
+          - **Move Paddle**: Arrow Keys / WASD / D-pad
+          - **Launch Ball**: Space / A button
+          - **Quit**: ESC / SELECT
+
+          ## What's Included
+
+          - Core gameplay: paddle, ball, brick collision
+          - Lives system (3 lives)
+          - Score tracking
+          - Stage progression
+          - Ball speed scaling (2% per collision)
+
+          ---
+          Built with SDL2 and ❤️
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
