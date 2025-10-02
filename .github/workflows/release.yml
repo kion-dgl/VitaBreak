@@ -114,9 +114,9 @@ jobs:
         docker run --rm \
           -v "$(pwd):/build/git" \
           -w /build/git \
-          -e VITASDK=/usr/local/vitasdk \
           gnuton/vitasdk-docker \
-          bash -c "mkdir -p build-vita && \
+          bash -c "source /usr/local/vitasdk/share/vita.bashrc && \
+                   mkdir -p build-vita && \
                    cd build-vita && \
                    cmake -DVITA=ON .. && \
                    make -j\$(nproc)"
