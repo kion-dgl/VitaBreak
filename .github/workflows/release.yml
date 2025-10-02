@@ -115,10 +115,11 @@ jobs:
           -v "$(pwd):/build/git" \
           -w /build/git \
           gnuton/vitasdk-docker \
-          bash -c "source /usr/local/vitasdk/share/vita.bashrc && \
+          bash -c "export VITASDK=/usr/local/vitasdk && \
+                   export PATH=\$VITASDK/bin:\$PATH && \
                    mkdir -p build-vita && \
                    cd build-vita && \
-                   cmake -DVITA=ON .. && \
+                   cmake -DCMAKE_TOOLCHAIN_FILE=\$VITASDK/share/vita.toolchain.cmake -DVITA=ON .. && \
                    make -j\$(nproc)"
 
     - name: Verify VPK
