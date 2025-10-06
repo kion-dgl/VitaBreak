@@ -1,0 +1,102 @@
+name: Auto Tag on Main Merge
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Get PR labels
+        id: pr_info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commit_sha = context.sha;
+
+            // Find the PR that was merged
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: commit_sha
+            });
+
+            if (prs.data.length === 0) {
+              console.log('No PR found for this commit, defaulting to minor');
+              return 'minor';
+            }
+
+            const pr = prs.data[0];
+            const labels = pr.labels.map(label => label.name);
+
+            console.log('PR labels:', labels);
+
+            // Check for version bump labels
+            // Default is minor, explicit patch or release for major
+            if (labels.includes('release')) {
+              return 'major';
+            } else if (labels.includes('patch')) {
+              return 'patch';
+            } else {
+              return 'minor';
+            }
+          result-encoding: string
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          # Get the latest tag, default to v0.0.0 if none exists
+          LATEST_TAG=$(git tag -l "v*.*.*" | sort -V | tail -n1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          TAG=${{ steps.get_tag.outputs.latest_tag }}
+          BUMP_TYPE=${{ steps.pr_info.outputs.result }}
+
+          # Remove 'v' prefix and split into major.minor.patch
+          VERSION=${TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          # Increment based on bump type
+          if [ "$BUMP_TYPE" = "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            echo "🚀 Major version bump"
+          elif [ "$BUMP_TYPE" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            echo "✨ Minor version bump"
+          else
+            PATCH=$((PATCH + 1))
+            echo "🔧 Patch version bump"
+          fi
+
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "New tag: $NEW_TAG (was $TAG)"
+
+      - name: Create and push tag
+        run: |
+          NEW_TAG=${{ steps.bump_version.outputs.new_tag }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a $NEW_TAG -m "Auto-release $NEW_TAG"
+          git push origin $NEW_TAG
+          echo "✅ Created and pushed tag: $NEW_TAG"
