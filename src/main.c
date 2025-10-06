@@ -60,6 +60,19 @@ void main_loop(void) {
                 g_state.ball_launched = true;
             }
         }
+        // Vita/Gamepad button support
+        if (e.type == SDL_JOYBUTTONDOWN) {
+            // Cross button (button 2) or Start button (button 11) to launch
+            if ((e.jbutton.button == 2 || e.jbutton.button == 11) && !g_state.ball_launched) {
+                float angle = -M_PI / 2.0f + ((rand() % 60) - 30) * M_PI / 180.0f;
+                ball_launch(&g_state.ball, angle);
+                g_state.ball_launched = true;
+            }
+            // Circle button (button 1) or Select button (button 10) to quit
+            if (e.jbutton.button == 1 || e.jbutton.button == 10) {
+                g_state.quit = true;
+            }
+        }
     }
 
     if (g_state.quit) {
@@ -84,11 +97,37 @@ void main_loop(void) {
         const Uint8* keys = SDL_GetKeyboardState(NULL);
         float paddle_direction = 0.0f;
 
+        // Keyboard controls
         if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A]) {
             paddle_direction = -1.0f;
         }
         if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) {
             paddle_direction = 1.0f;
+        }
+
+        // Gamepad/Vita analog stick controls
+        SDL_Joystick* joystick = SDL_JoystickOpen(0);
+        if (joystick && SDL_JoystickGetAttached(joystick)) {
+            // Get left analog stick X-axis (axis 0)
+            Sint16 axis_x = SDL_JoystickGetAxis(joystick, 0);
+
+            // Dead zone threshold
+            const Sint16 DEAD_ZONE = 8000;
+
+            if (axis_x < -DEAD_ZONE) {
+                paddle_direction = -1.0f;
+            } else if (axis_x > DEAD_ZONE) {
+                paddle_direction = 1.0f;
+            }
+
+            // D-Pad support (hat 0)
+            Uint8 hat = SDL_JoystickGetHat(joystick, 0);
+            if (hat & SDL_HAT_LEFT) {
+                paddle_direction = -1.0f;
+            }
+            if (hat & SDL_HAT_RIGHT) {
+                paddle_direction = 1.0f;
+            }
         }
 
         paddle_move(&g_state.paddle, paddle_direction, FIXED_DT);
@@ -186,10 +225,20 @@ void main_loop(void) {
 }
 
 int main(int argc, char* argv[]) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
+
+#ifdef VITA
+    // Open the first joystick (Vita controller)
+    if (SDL_NumJoysticks() > 0) {
+        SDL_Joystick* joystick = SDL_JoystickOpen(0);
+        if (joystick) {
+            printf("Vita controller opened successfully\n");
+        }
+    }
+#endif
 
     g_state.window = SDL_CreateWindow(
         "BreakOut",
