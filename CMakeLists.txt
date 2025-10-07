@@ -29,6 +29,13 @@ if(NOT VITA AND NOT EMSCRIPTEN)
         message(STATUS "Using manually specified SDL2 paths")
         include_directories(${SDL2_INCLUDE_DIR})
         set(SDL2_LIBRARIES ${SDL2_LIBRARY})
+
+        # Handle SDL2_ttf for Windows
+        if(DEFINED SDL2_TTF_INCLUDE_DIR AND DEFINED SDL2_TTF_LIBRARY)
+            message(STATUS "Using manually specified SDL2_ttf paths")
+            include_directories(${SDL2_TTF_INCLUDE_DIR})
+            set(SDL2_TTF_LIBRARIES ${SDL2_TTF_LIBRARY})
+        endif()
     else()
         find_package(SDL2 REQUIRED)
         include_directories(${SDL2_INCLUDE_DIRS})
