@@ -135,7 +135,6 @@ jobs:
     - name: Verify VPK
       run: |
         ls -lh build-vita/BreakOut.vpk
-        file build-vita/BreakOut.vpk
 
     # Create Release
     - name: Create Release
