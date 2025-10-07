@@ -130,10 +130,12 @@ elseif(EMSCRIPTEN)
 
     target_compile_options(BreakOut PRIVATE
         -sUSE_SDL=2
+        -sUSE_SDL_TTF=2
     )
 
     target_link_options(BreakOut PRIVATE
         -sUSE_SDL=2
+        -sUSE_SDL_TTF=2
         -sALLOW_MEMORY_GROWTH=1
     )
 

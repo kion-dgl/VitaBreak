@@ -19,7 +19,7 @@ jobs:
     - name: Install SDL2
       run: |
         sudo apt-get update
-        sudo apt-get install -y libsdl2-dev cmake build-essential
+        sudo apt-get install -y libsdl2-dev libsdl2-ttf-dev cmake build-essential
 
     - name: Build Linux
       run: |
@@ -40,12 +40,21 @@ jobs:
         export SDL2_DIR=$(pwd)/SDL2-2.30.10/x86_64-w64-mingw32
         echo "SDL2_DIR=$SDL2_DIR" >> $GITHUB_ENV
 
+    - name: Download SDL2_ttf for MinGW
+      run: |
+        wget https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/SDL2_ttf-devel-2.22.0-mingw.tar.gz
+        tar -xzf SDL2_ttf-devel-2.22.0-mingw.tar.gz
+        export SDL2_TTF_DIR=$(pwd)/SDL2_ttf-2.22.0/x86_64-w64-mingw32
+        echo "SDL2_TTF_DIR=$SDL2_TTF_DIR" >> $GITHUB_ENV
+
     - name: Build Windows
       run: |
         mkdir build-windows && cd build-windows
         cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake \
-              -DSDL2_INCLUDE_DIR=$SDL2_DIR/include/SDL2 \
+              -DSDL2_INCLUDE_DIR="$SDL2_DIR/include/SDL2;$SDL2_TTF_DIR/include/SDL2" \
               -DSDL2_LIBRARY="$SDL2_DIR/lib/libSDL2main.a;$SDL2_DIR/lib/libSDL2.dll.a" \
+              -DSDL2_TTF_INCLUDE_DIR=$SDL2_TTF_DIR/include/SDL2 \
+              -DSDL2_TTF_LIBRARY=$SDL2_TTF_DIR/lib/libSDL2_ttf.dll.a \
               ..
         make -j$(nproc)
 
@@ -54,6 +63,7 @@ jobs:
         mkdir BreakOut-Windows
         cp build-windows/BreakOut.exe BreakOut-Windows/
         cp $SDL2_DIR/bin/SDL2.dll BreakOut-Windows/
+        cp $SDL2_TTF_DIR/bin/SDL2_ttf.dll BreakOut-Windows/
         zip -r BreakOut-Windows-x86_64.zip BreakOut-Windows/
 
     # WebAssembly Build
