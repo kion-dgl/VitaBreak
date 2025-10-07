@@ -125,6 +125,11 @@ int main(int argc, char* argv[]) {
     stage_init(&g_stage, 1);
     score_init();
 
+    // Initialize text rendering
+    if (!text_init(&g_ctx.text_renderer, g_ctx.renderer)) {
+        printf("Warning: Text rendering failed to initialize. Game will use fallback rendering.\n");
+    }
+
     // Initialize state machine
     state_init(&g_ctx);
     g_ctx.current_time = SDL_GetTicks();
@@ -138,6 +143,7 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
+    text_cleanup(&g_ctx.text_renderer);
     if (g_ctx.joystick) {
         SDL_JoystickClose(g_ctx.joystick);
     }

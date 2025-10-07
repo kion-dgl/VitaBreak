@@ -7,6 +7,7 @@
 #include "../game/collision.h"
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -15,21 +16,6 @@
 #define SCREEN_WIDTH 960
 #define SCREEN_HEIGHT 544
 #define FIXED_DT (1.0f / 60.0f)
-
-// Helper function to draw centered text (simple, using SDL primitives for now)
-static void draw_text_centered(SDL_Renderer* renderer, const char* text, int y, int size) {
-    // For blockout, we'll draw simple rectangles representing text
-    // In Stage 2, this will be replaced with actual font rendering
-    int text_width = (int)(strlen(text) * size * 0.6f);
-    int x = (SCREEN_WIDTH - text_width) / 2;
-
-    SDL_Rect text_box = {x - 10, y - 5, text_width + 20, size + 10};
-    SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-    SDL_RenderFillRect(renderer, &text_box);
-
-    // Print to console as well
-    printf("%s\n", text);
-}
 
 // Initialize game state system
 void state_init(GameContext* ctx) {
@@ -158,16 +144,24 @@ void state_title_render(GameContext* ctx) {
     SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 50, 255); // Dark blue background
     SDL_RenderClear(ctx->renderer);
 
-    // Title text (represented as rectangles in blockout)
-    draw_text_centered(ctx->renderer, "VitaBreak", 120, 80);
+    SDL_Color white = {255, 255, 255, 255};
+    SDL_Color cyan = {100, 200, 255, 255};
+
+    // Title text
+    text_render_centered(&ctx->text_renderer, "VitaBreak", 120,
+                        text_get_font_large(&ctx->text_renderer), white);
 
     // Menu options
-    draw_text_centered(ctx->renderer, "- Start", 280, 40);
-    draw_text_centered(ctx->renderer, "- Quit", 340, 40);
+    text_render_centered(&ctx->text_renderer, "- Start", 280,
+                        text_get_font_medium(&ctx->text_renderer), cyan);
+    text_render_centered(&ctx->text_renderer, "- Quit", 340,
+                        text_get_font_medium(&ctx->text_renderer), cyan);
 
     // Instructions
-    draw_text_centered(ctx->renderer, "Press SPACE/X to Start", 420, 25);
-    draw_text_centered(ctx->renderer, "Press ESC/Circle to Quit", 460, 25);
+    text_render_centered(&ctx->text_renderer, "Press SPACE/X to Start", 420,
+                        text_get_font_small(&ctx->text_renderer), white);
+    text_render_centered(&ctx->text_renderer, "Press ESC/Circle to Quit", 460,
+                        text_get_font_small(&ctx->text_renderer), white);
 }
 
 // ===== GAMEPLAY STATE =====
@@ -340,11 +334,13 @@ void state_gameplay_render(GameContext* ctx) {
         }
     }
 
-    // HUD: Score and Lives (simple rectangles for now)
+    // HUD: Score, Lives, and Stage
+    SDL_Color white = {255, 255, 255, 255};
     char hud_text[64];
     snprintf(hud_text, sizeof(hud_text), "Score: %d  Lives: %d  Stage: %d",
              ctx->score, ctx->lives, ctx->current_stage);
-    draw_text_centered(ctx->renderer, hud_text, 10, 16);
+    text_render_centered(&ctx->text_renderer, hud_text, 10,
+                        text_get_font_small(&ctx->text_renderer), white);
 }
 
 // ===== GAME OVER STATE =====
@@ -376,13 +372,19 @@ void state_gameover_render(GameContext* ctx) {
     SDL_SetRenderDrawColor(ctx->renderer, 50, 0, 0, 255); // Dark red background
     SDL_RenderClear(ctx->renderer);
 
-    draw_text_centered(ctx->renderer, "GAME OVER", 200, 50);
+    SDL_Color red = {255, 100, 100, 255};
+    SDL_Color white = {255, 255, 255, 255};
+
+    text_render_centered(&ctx->text_renderer, "GAME OVER", 200,
+                        text_get_font_large(&ctx->text_renderer), red);
 
     char score_text[64];
     snprintf(score_text, sizeof(score_text), "Final Score: %d", ctx->score);
-    draw_text_centered(ctx->renderer, score_text, 280, 30);
+    text_render_centered(&ctx->text_renderer, score_text, 280,
+                        text_get_font_medium(&ctx->text_renderer), white);
 
-    draw_text_centered(ctx->renderer, "Press Any Button to Continue", 380, 25);
+    text_render_centered(&ctx->text_renderer, "Press Any Button to Continue", 380,
+                        text_get_font_small(&ctx->text_renderer), white);
 }
 
 // ===== GAME COMPLETE STATE =====
@@ -414,12 +416,19 @@ void state_gamecomplete_render(GameContext* ctx) {
     SDL_SetRenderDrawColor(ctx->renderer, 0, 50, 0, 255); // Dark green background
     SDL_RenderClear(ctx->renderer);
 
-    draw_text_centered(ctx->renderer, "CONGRATULATIONS!", 180, 50);
-    draw_text_centered(ctx->renderer, "All Stages Complete!", 240, 35);
+    SDL_Color green = {100, 255, 100, 255};
+    SDL_Color white = {255, 255, 255, 255};
+
+    text_render_centered(&ctx->text_renderer, "CONGRATULATIONS!", 180,
+                        text_get_font_large(&ctx->text_renderer), green);
+    text_render_centered(&ctx->text_renderer, "All Stages Complete!", 240,
+                        text_get_font_medium(&ctx->text_renderer), white);
 
     char score_text[64];
     snprintf(score_text, sizeof(score_text), "Final Score: %d", ctx->score);
-    draw_text_centered(ctx->renderer, score_text, 300, 30);
+    text_render_centered(&ctx->text_renderer, score_text, 300,
+                        text_get_font_medium(&ctx->text_renderer), white);
 
-    draw_text_centered(ctx->renderer, "Press Any Button to Continue", 380, 25);
+    text_render_centered(&ctx->text_renderer, "Press Any Button to Continue", 380,
+                        text_get_font_small(&ctx->text_renderer), white);
 }

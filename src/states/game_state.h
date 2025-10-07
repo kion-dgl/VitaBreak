@@ -12,6 +12,7 @@
 #include "../game/paddle.h"
 #include "../game/ball.h"
 #include "../game/stage.h"
+#include "../systems/text.h"
 
 // Game state types
 typedef enum {
@@ -37,6 +38,7 @@ typedef struct {
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Joystick* joystick;
+    TextRenderer text_renderer;
 
     // Game entities
     Paddle* paddle;
