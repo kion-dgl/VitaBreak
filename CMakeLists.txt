@@ -102,6 +102,7 @@ if(VITA)
         SDL2
         SDL2_ttf
         freetype
+        bz2
         png
         z
         m
