@@ -29,9 +29,20 @@ if(NOT VITA AND NOT EMSCRIPTEN)
         message(STATUS "Using manually specified SDL2 paths")
         include_directories(${SDL2_INCLUDE_DIR})
         set(SDL2_LIBRARIES ${SDL2_LIBRARY})
+
+        # Handle SDL2_ttf for Windows
+        if(DEFINED SDL2_TTF_INCLUDE_DIR AND DEFINED SDL2_TTF_LIBRARY)
+            message(STATUS "Using manually specified SDL2_ttf paths")
+            include_directories(${SDL2_TTF_INCLUDE_DIR})
+            set(SDL2_TTF_LIBRARIES ${SDL2_TTF_LIBRARY})
+        endif()
     else()
         find_package(SDL2 REQUIRED)
         include_directories(${SDL2_INCLUDE_DIRS})
+        # Find SDL2_ttf for text rendering
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(SDL2_TTF REQUIRED SDL2_ttf)
+        include_directories(${SDL2_TTF_INCLUDE_DIRS})
     endif()
 endif()
 
@@ -55,6 +66,7 @@ set(OPTIONAL_SOURCES
     src/systems/render.c
     src/systems/input.c
     src/systems/timer.c
+    src/systems/text.c
 )
 
 foreach(SOURCE ${OPTIONAL_SOURCES})
@@ -88,6 +100,11 @@ if(VITA)
 
     target_link_libraries(BreakOut
         SDL2
+        SDL2_ttf
+        freetype
+        bz2
+        png
+        z
         m
         SceDisplay_stub
         SceCtrl_stub
@@ -99,7 +116,6 @@ if(VITA)
         SceCommonDialog_stub
         SceTouch_stub
         SceHid_stub
-        m
     )
 
     vita_create_self(BreakOut.self BreakOut)
@@ -117,10 +133,12 @@ elseif(EMSCRIPTEN)
 
     target_compile_options(BreakOut PRIVATE
         -sUSE_SDL=2
+        -sUSE_SDL_TTF=2
     )
 
     target_link_options(BreakOut PRIVATE
         -sUSE_SDL=2
+        -sUSE_SDL_TTF=2
         -sALLOW_MEMORY_GROWTH=1
     )
 
@@ -129,6 +147,7 @@ elseif(WIN32)
     target_link_libraries(BreakOut
         mingw32
         ${SDL2_LIBRARIES}
+        ${SDL2_TTF_LIBRARIES}
         m
     )
 
@@ -141,6 +160,7 @@ else()
     # Linux/Desktop
     target_link_libraries(BreakOut
         ${SDL2_LIBRARIES}
+        ${SDL2_TTF_LIBRARIES}
         m
     )
 endif()
