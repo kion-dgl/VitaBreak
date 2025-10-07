@@ -154,9 +154,9 @@
 ## Stage 3: Game Flow & Scoring (States, Lives, Progression)
 
 ### Phase 3.1: State Machine Foundation
-- [ ] T075 [P] Create src/states/game_state.h (GameStateType enum: MENU, GAMEPLAY, GAME_OVER)
-- [ ] T076 [P] Create src/states/game_state.c (state_init, state_update, state_render, state_transition functions)
-- [ ] T077 [P] Write tests/integration/test_state_transitions.c (test MENU→GAMEPLAY→GAME_OVER→MENU loop)
+- [x] T075 [P] Create src/states/game_state.h (GameStateType enum: TITLE, GAMEPLAY, GAME_OVER, GAME_COMPLETE)
+- [x] T076 [P] Create src/states/game_state.c (state_init, state_update, state_render, state_transition functions)
+- [ ] T077 [P] Write tests/integration/test_state_transitions.c (test TITLE→GAMEPLAY→GAME_OVER→TITLE loop)
 
 ### Phase 3.2: Menu State (Start Screen)
 - [ ] T078 [P] Create src/states/menu.h (menu_init, menu_update, menu_render)
