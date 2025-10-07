@@ -101,6 +101,9 @@ if(VITA)
     target_link_libraries(BreakOut
         SDL2
         SDL2_ttf
+        freetype
+        png
+        z
         m
         SceDisplay_stub
         SceCtrl_stub
@@ -112,7 +115,6 @@ if(VITA)
         SceCommonDialog_stub
         SceTouch_stub
         SceHid_stub
-        m
     )
 
     vita_create_self(BreakOut.self BreakOut)
