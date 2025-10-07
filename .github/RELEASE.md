@@ -2,6 +2,10 @@
 
 This project uses automatic versioning and releases when PRs are merged to `main`.
 
+## ⚠️ Setup Required
+
+For automatic releases to work, you need to set up a Personal Access Token (PAT). See [SETUP_PAT.md](./SETUP_PAT.md) for instructions.
+
 ## How It Works
 
 1. **Create a PR** with your changes
