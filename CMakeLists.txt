@@ -93,6 +93,14 @@ endif()
 # Main executable
 add_executable(BreakOut ${SOURCES})
 
+# Copy assets to build directory for all platforms (Vita packages in VPK)
+if(NOT VITA)
+    add_custom_command(TARGET BreakOut POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:BreakOut>/assets
+    )
+endif()
+
 # Platform-specific linking
 if(VITA)
     # VitaSDK
@@ -122,6 +130,7 @@ if(VITA)
     vita_create_vpk(BreakOut.vpk ${VITA_TITLEID} BreakOut.self
         VERSION ${VITA_VERSION}
         NAME ${VITA_APP_NAME}
+        FILE ${CMAKE_SOURCE_DIR}/assets assets
     )
 
 elseif(EMSCRIPTEN)

@@ -223,12 +223,21 @@ void state_gameplay_update(GameContext* ctx, float dt) {
             paddle_direction = 1.0f;
         }
 
-        // D-Pad support
+        // D-Pad support (hat-based, for most controllers)
         Uint8 hat = SDL_JoystickGetHat(ctx->joystick, 0);
         if (hat & SDL_HAT_LEFT) {
             paddle_direction = -1.0f;
         }
         if (hat & SDL_HAT_RIGHT) {
+            paddle_direction = 1.0f;
+        }
+
+        // D-Pad support (button-based, for PS Vita)
+        // Vita D-pad: Button 7 = Left, Button 5 = Right
+        if (SDL_JoystickGetButton(ctx->joystick, 7)) {
+            paddle_direction = -1.0f;
+        }
+        if (SDL_JoystickGetButton(ctx->joystick, 5)) {
             paddle_direction = 1.0f;
         }
     }
